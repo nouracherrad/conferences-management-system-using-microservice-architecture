@@ -1,0 +1,4 @@
+package org.sdia.conferenceservice.entities;
+
+public enum Note {
+}
