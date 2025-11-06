@@ -5,10 +5,10 @@ spring:
         webflux:
           routes:
             - id: r1
-              uri: http://localhost:8082
+              uri: lb://CONFERENCE-SERVICE
               predicates:
                 - Path=/api/conferences/**
             - id: r2
-              uri : http://localhost:8081
+              uri : lb://KEYNOTE-SERVICE
               predicates:
                 - Path=/api/keynotes/**

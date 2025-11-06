@@ -1,5 +1,6 @@
 package org.sdia.conferenceservice;
 
+import org.sdia.conferenceservice.config.ConferenceConfigParam;
 import org.sdia.conferenceservice.entities.Conference;
 import org.sdia.conferenceservice.entities.Review;
 import org.sdia.conferenceservice.entities.Type;
@@ -8,12 +9,15 @@ import org.sdia.conferenceservice.repository.ReviewRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 
 import java.util.ArrayList;
 import java.util.Date;
-@EnableFeignClients
+import java.util.List;
+@EnableConfigurationProperties(ConferenceConfigParam.class)
+@EnableFeignClients(basePackages = "org.sdia.conferenceservice.feign")
 @SpringBootApplication
 public class ConferenceServiceApplication {
 
@@ -32,6 +36,7 @@ public class ConferenceServiceApplication {
                     .nbInscrits(0)
                     .score(0)
                     .reviews(new ArrayList<>())
+                    .keynoteIds(new ArrayList<>(List.of(1L, 2L))) // <-- Ajouter des IDs de keynotes
                     .build();
 
             Conference c2 = Conference.builder()
@@ -43,7 +48,9 @@ public class ConferenceServiceApplication {
                     .nbInscrits(0)
                     .score(0)
                     .reviews(new ArrayList<>())
+                    .keynoteIds(new ArrayList<>(List.of(3L))) // <-- Ajouter un ID
                     .build();
+
 
             repository.save(c1);
             repository.save(c2);

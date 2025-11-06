@@ -14,4 +14,9 @@ public class GatewayServiceApplication {
         SpringApplication.run(GatewayServiceApplication.class, args);
     }
 
+    @Bean
+    DiscoveryClientRouteDefinitionLocator definitionLocator(ReactiveDiscoveryClient discoveryClient,
+                                                            DiscoveryLocatorProperties properties) {
+        return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
+    }
 }
