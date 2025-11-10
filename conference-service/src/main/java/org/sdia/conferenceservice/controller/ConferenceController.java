@@ -5,12 +5,13 @@ import org.sdia.conferenceservice.feign.KeynoteRestClient;
 import org.sdia.conferenceservice.service.ConferenceService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-
 @RestController
 @RequestMapping("/api/conferences")
+
 public class ConferenceController {
 
     private final ConferenceService service;
@@ -24,22 +25,15 @@ public class ConferenceController {
     @GetMapping
     public CollectionModel<EntityModel<Conference>> getAll() {
         List<EntityModel<Conference>> conferences = service.getAll().stream()
-                .map(conf -> {
-                    EntityModel<Conference> resource = EntityModel.of(conf);
-                    resource.add(linkTo(methodOn(ConferenceController.class).getById(conf.getId())).withSelfRel());
-                    resource.add(linkTo(methodOn(ConferenceController.class).getKeynotes(conf.getId())).withRel("keynotes"));
-                    return resource;
-                }).toList();
-        return CollectionModel.of(conferences, linkTo(methodOn(ConferenceController.class).getAll()).withSelfRel());
+                .map(conf -> EntityModel.of(conf))
+                .toList();
+        return CollectionModel.of(conferences);
     }
 
+
     @GetMapping("/{id}")
-    public EntityModel<Conference> getById(@PathVariable Long id) {
-        Conference conf = service.getById(id);
-        EntityModel<Conference> resource = EntityModel.of(conf);
-        resource.add(linkTo(methodOn(ConferenceController.class).getById(id)).withSelfRel());
-        resource.add(linkTo(methodOn(ConferenceController.class).getKeynotes(id)).withRel("keynotes"));
-        return resource;
+    public Conference getById(@PathVariable Long id) {
+        return service.getById(id);
     }
 
     @GetMapping("/{id}/keynotes")
@@ -47,15 +41,24 @@ public class ConferenceController {
         Conference conf = service.getById(id);
 
         return conf.getKeynoteIds().stream()
-                .map(keynoteClient::getKeynoteById) // retourne org.sdia.keynoteservice.entities.Keynote
+                .map(keynoteClient::getKeynoteById)
                 .map(k -> new KeynoteDTO(k.getId(), k.getNom(), k.getPrenom(), k.getEmail(), k.getFonction()))
                 .toList();
     }
 
-
     @PostMapping
-    public Conference create(@RequestBody Conference conference) { return service.save(conference); }
+    public Conference create(@RequestBody Conference conference) {
+        return service.save(conference);
+    }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) { service.delete(id); }
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
+    }
+@GetMapping("/auth")
+    public Authentication authentication(Authentication authentication){
+        return authentication;
+}
+
+
 }

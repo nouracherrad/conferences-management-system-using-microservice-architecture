@@ -1,0 +1,16 @@
+<div class="container mt-4">
+  <h2>Liste des keynotes</h2>
+  <div class="row mt-3">
+    <div class="col-md-4" *ngFor="let k of keynotes">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h5 class="card-title">{{ k.prenom }} {{ k.nom }}</h5>
+          <p class="card-text">
+            <strong>Fonction :</strong> {{ k.fonction }} <br>
+            <strong>Email :</strong> {{ k.email }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

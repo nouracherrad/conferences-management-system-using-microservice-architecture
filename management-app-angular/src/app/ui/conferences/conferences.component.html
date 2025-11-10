@@ -1,0 +1,45 @@
+<div class="container mt-4">
+  <h2 class="text-center mb-4">Liste des conférences</h2>
+
+  <!-- Message de chargement -->
+  <div *ngIf="loading" class="alert alert-info text-center">
+    Chargement des conférences...
+  </div>
+
+  <!-- Message d'erreur -->
+  <div *ngIf="errorMessage" class="alert alert-danger text-center">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Tableau des conférences -->
+  <table class="table table-bordered table-hover mt-3" *ngIf="!loading && conferences.length > 0">
+    <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Titre</th>
+      <th>Type</th>
+      <th>Date</th>
+      <th>Nombre de Keynotes</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let conf of conferences">
+      <td>{{ conf.id }}</td>
+      <td>{{ conf.title }}</td>
+      <td>{{ conf.type }}</td>
+      <td>{{ conf.date | date: 'mediumDate' }}</td>
+      <td>{{ conf.keynoteIds.length }}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-2">Détails</button>
+        <button class="btn btn-sm btn-outline-danger" (click)="deleteConference(conf.id)">Supprimer</button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <!-- Aucun résultat -->
+  <div *ngIf="!loading && conferences.length === 0" class="alert alert-warning text-center">
+    Aucune conférence disponible pour le moment.
+  </div>
+</div>
