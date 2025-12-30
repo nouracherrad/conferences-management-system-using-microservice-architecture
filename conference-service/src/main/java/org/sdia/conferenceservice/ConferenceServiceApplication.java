@@ -1,6 +1,5 @@
 package org.sdia.conferenceservice;
 
-import org.sdia.conferenceservice.config.ConferenceConfigParam;
 import org.sdia.conferenceservice.entities.Conference;
 import org.sdia.conferenceservice.entities.Review;
 import org.sdia.conferenceservice.entities.Type;
@@ -16,7 +15,6 @@ import org.springframework.context.annotation.Bean;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-@EnableConfigurationProperties(ConferenceConfigParam.class)
 @EnableFeignClients(basePackages = "org.sdia.conferenceservice.feign")
 @SpringBootApplication
 public class ConferenceServiceApplication {

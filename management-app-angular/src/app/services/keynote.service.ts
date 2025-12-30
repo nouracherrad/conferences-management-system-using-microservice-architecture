@@ -15,7 +15,9 @@ export interface Keynote {
 export class KeynoteService {
   private apiUrl = 'http://localhost:8081/api/keynotes';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient
+
+  ) {}
 
   getAllKeynotes(): Observable<Keynote[]> {
     return this.http.get<Keynote[]>(this.apiUrl);

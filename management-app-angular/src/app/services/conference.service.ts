@@ -17,7 +17,7 @@ export interface Conference {
 export class ConferenceService {
   private apiUrl = 'http://localhost:8082/api/conferences';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient ) {}
 
   getAllConferences(): Observable<Conference[]> {
     return this.http.get<any>(this.apiUrl).pipe(

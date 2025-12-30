@@ -14,7 +14,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
     keycloak.init({
       config: {
-        url: 'http://localhost:8080',
+        url: 'http://localhost:9080',
         realm: 'conference-realm',
         clientId: 'conference-client-angular'
       },

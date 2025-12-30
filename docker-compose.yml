@@ -1,0 +1,168 @@
+
+services:
+
+  # Eureka Discovery Service
+  discovery-service:
+    build:
+      context: ./discovery-service
+      dockerfile: Dockerfile
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_REGISTER-WITH-EUREKA: "false"
+      EUREKA_CLIENT_FETCH-REGISTRY: "false"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  # Config Service
+  config-service:
+    build:
+      context: ./config-service
+      dockerfile: Dockerfile
+    container_name: config-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATION_NAME: config-service
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_CLOUD_CONFIG_FAIL_FAST: "false"
+      SPRING_CLOUD_CONFIG_RETRY_INITIAL_INTERVAL: 3000
+      SPRING_CLOUD_CONFIG_RETRY_MAX_ATTEMPTS: 10
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:9080/realms/conference-realm
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:9080/realms/conference-realm/protocol/openid-connect/certs
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/nouracherrad/config-management-conference-repo
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD","wget", "--spider", "-q",  "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+
+  # API Gateway
+  gateway-service:
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_CLOUD_CONFIG_URI: http://config-service:8080
+      SPRING_CLOUD_CONFIG_FAIL_FAST: "false"
+      SPRING_CLOUD_CONFIG_RETRY_INITIAL_INTERVAL: 3000
+      SPRING_CLOUD_CONFIG_RETRY_MAX_ATTEMPTS: 10
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_started
+    ports:
+      - "8090:8090"
+    networks:
+      - app-network
+
+  # Conference Service
+  conference-service:
+    build:
+      context: ./conference-service
+      dockerfile: Dockerfile
+    container_name: conference-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-service:8080
+      KEYCLOAK_URL: http://keycloak:9080
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:9080/realms/conference-realm
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:9080/realms/conference-realm/protocol/openid-connect/certs
+      SPRING_CLOUD_CONFIG_FAIL_FAST: "false"
+      SPRING_CLOUD_CONFIG_RETRY_INITIAL_INTERVAL: 3000
+      SPRING_CLOUD_CONFIG_RETRY_MAX_ATTEMPTS: 10
+    depends_on:
+      - discovery-service
+      - config-service
+      - keycloak
+    ports:
+      - "8082:8082"
+    networks:
+      - app-network
+
+  # Keynote Service
+  keynote-service:
+    build:
+      context: ./keynote-service
+      dockerfile: Dockerfile
+    container_name: keynote-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-service:8080
+      KEYCLOAK_URL: http://keycloak:9080
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:9080/realms/conference-realm
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:9080/realms/conference-realm/protocol/openid-connect/certs
+      SPRING_CLOUD_CONFIG_FAIL_FAST: "false"
+      SPRING_CLOUD_CONFIG_RETRY_INITIAL_INTERVAL: 3000
+      SPRING_CLOUD_CONFIG_RETRY_MAX_ATTEMPTS: 10
+    depends_on:
+      - discovery-service
+      - config-service
+      - keycloak
+    ports:
+      - "8081:8081"
+    networks:
+      - app-network
+
+  # Angular Frontend
+  angular-app:
+    build:
+      context: ./management-app-angular
+      dockerfile: Dockerfile
+    container_name: angular-app
+    ports:
+      - "82:80"
+    depends_on:
+      - gateway-service
+    networks:
+      - app-network
+
+  # Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1.2
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_ENABLED: "true"
+    command:
+     start-dev
+    ports:
+      - "9080:8080"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q",  "http://localhost:9080/realms/conference-realm/.well-known/openid-configuration"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+
+networks:
+  app-network:
+    driver: bridge
+volumes:
+  keycloak_data:

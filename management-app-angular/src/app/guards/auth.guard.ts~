@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import {
-  ActivatedRouteSnapshot, CanActivateFn,
+  ActivatedRouteSnapshot,
   Router,
   RouterStateSnapshot
 } from '@angular/router';
 import { KeycloakAuthGuard, KeycloakService } from 'keycloak-angular';
-import {TestBed} from '@angular/core/testing';
 
 @Injectable({
   providedIn: 'root'
@@ -41,7 +40,3 @@ export class AuthGuard extends KeycloakAuthGuard {
     return requiredRoles.every((role) => this.roles.includes(role));
   }
 }
-export const authGuard: CanActivateFn = (route, state) => {
-  const guard = TestBed.inject(AuthGuard);
-  return guard.isAccessAllowed(route as ActivatedRouteSnapshot, state);
-};
